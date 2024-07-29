@@ -9,19 +9,15 @@
         tr {
             text-align: center;
         }
-
         body {
             text-decoration: none;
         }
-
         .buat-logout {
             margin-left: 43em;
         }
-
         .wide-select {
             width: 100px;
         }
-
         th, td {
             text-align: center;
             vertical-align: middle;
@@ -29,14 +25,10 @@
     </style>
 </head>
 <body>
-    <?php 
-        include "koneksi.php";
-    ?>
+    <?php include "koneksi.php"; ?>
 
-    <!-- judul halaman -->
     <h3 class="mt-5 ms-5">Sistem Kasir</h3>
 
-    <!-- navigasi untuk mengakses data kamar dan data lainnya -->
     <div class="d-flex flex-row ms-n2">
         <div class="p-2">
             <div class="dropdown">
@@ -46,7 +38,6 @@
                 <ul class="dropdown-menu mt-2">
                     <li><a class="dropdown-item" href="products.php">Data produk</a></li>
                     <li><a class="dropdown-item" href="admin_read.php">Data admin</a></li>
-                    <!-- <li><a class="dropdown-item" href="penyewaan_read.php">ERROR</a></li> -->
                 </ul>
             </div>
         </div>
@@ -69,7 +60,7 @@
     <hr>
 
     <div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-        <!-- Alert container for Bootstrap alerts -->
+
     </div>
 
     <table class="table ms-2" style="width: 90%">
@@ -110,48 +101,25 @@
                 $query = mysqli_query($db, $sql);
                 $no = 1;
 
-                // Fetch all kasir data for the dropdown
-                $kasir_sql = "SELECT id_kasir, nama FROM kasir";
-                $kasir_query = mysqli_query($db, $kasir_sql);
-                $kasir_options = [];
-                while ($kasir_data = mysqli_fetch_assoc($kasir_query)) {
-                    $kasir_options[] = $kasir_data;
+                function fetchOptions($db, $table, $idColumn, $nameColumn) {
+                    $sql = "SELECT $idColumn, $nameColumn FROM $table";
+                    $query = mysqli_query($db, $sql);
+                    $options = [];
+                    while ($data = mysqli_fetch_assoc($query)) {
+                        $options[] = $data;
+                    }
+                    return $options;
                 }
 
-                // Fetch all status data for the dropdown
-                $status_sql = "SELECT id_status, status FROM statusnya";
-                $status_query = mysqli_query($db, $status_sql);
-                $status_options = [];
-                while ($status_data = mysqli_fetch_assoc($status_query)) {
-                    $status_options[] = $status_data;
-                }
+                $kasir_options = fetchOptions($db, 'kasir', 'id_kasir', 'nama');
+                $status_options = fetchOptions($db, 'statusnya', 'id_status', 'status');
+                $payment_options = fetchOptions($db, 'payment', 'id_payment', 'payment');
+                $kota_options = fetchOptions($db, 'kota', 'id_kota', 'kota');
+                $sumber_options = fetchOptions($db, 'sumber', 'id_sumber', 'sumber');
 
-                // Fetch all payment data for the dropdown
-                $payment_sql = "SELECT id_payment, payment FROM payment";
-                $payment_query = mysqli_query($db, $payment_sql);
-                $payment_options = [];
-                while ($payment_data = mysqli_fetch_assoc($payment_query)) {
-                    $payment_options[] = $payment_data;
-                }
-
-                // Fetch all kota data for the dropdown
-                $kota_sql = "SELECT id_kota, kota FROM kota";
-                $kota_query = mysqli_query($db, $kota_sql);
-                $kota_options = [];
-                while ($kota_data = mysqli_fetch_assoc($kota_query)) {
-                    $kota_options[] = $kota_data;
-                }
-
-                // Fetch all sumber data for the dropdown
-                $sumber_sql = "SELECT id_sumber, sumber FROM sumber";
-                $sumber_query = mysqli_query($db, $sumber_sql);
-                $sumber_options = [];
-                while ($sumber_data = mysqli_fetch_assoc($sumber_query)) {
-                    $sumber_options[] = $sumber_data;
-                }
-
-                while($data = mysqli_fetch_array($query)){
+                while ($data = mysqli_fetch_array($query)) {
                     $id = isset($data['id']) ? $data['id'] : '';
+
                     echo "<tr>";
                     echo "<td>".$no++."</td>";
                     echo "<td>".$data['Tanggal']."</td>";
@@ -199,9 +167,9 @@
                     echo "</select>";
                     echo "</td>";
                     echo "<td>".$data['id_produk']."</td>";
-                    echo "<td>".$data['qty']."</td>";
+                    echo "<td><input type='number' class='form-control qty-input' data-id='".$id."' value='".$data['qty']."' /></td>";
                     echo "<td>".$data['harga_per_item']."</td>";
-                    echo "<td>".$data['spending_total']."</td>";
+                    echo "<td class='total-cell'>".$data['spending_total']."</td>";
                     echo "<td>".$data['discount']."</td>";
                     echo "<td>".$data['each_total']."</td>";
                     echo "<td>".$data['grand_total']."</td>";
@@ -216,43 +184,68 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybBogGzU1q58rU+ASpae7rZ6fz7Z39oQB6Qr60MxtRaGtvFQ+" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-oBqDVmMz4fnFO9gybBogGzU1q58rU+ASpae7rZ6fz7Z39oQB6Qr60MxtRaGtvFQ+" crossorigin="anonymous"></script>
     <script>
+        function updateDatabase(id, type, value) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'update_data.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                    showAlert(xhr.responseText);
+                }
+            };
+            xhr.send(`id=${id}&type=${type}&value=${value}`);
+        }
+
+        function calculateTotal(input) {
+            const qty = parseFloat(input.value) || 0;
+            const pricePerItem = parseFloat(input.closest('tr').querySelector('td:nth-child(13)').textContent) || 0;
+            const totalCell = input.closest('tr').querySelector('.total-cell');
+            const total = qty * pricePerItem;
+            totalCell.textContent = total.toFixed(2);
+
+            updateDatabase(input.dataset.id, 'qty', qty);
+            const discount = parseFloat(input.closest('tr').querySelector('td:nth-child(15)').textContent) || 0;
+            const eachTotal = total - discount;
+            input.closest('tr').querySelector('td:nth-child(16)').textContent = eachTotal.toFixed(2);
+            let grandTotal = 0;
+            document.querySelectorAll('.each_total').forEach(cell => {
+                grandTotal += parseFloat(cell.textContent) || 0;
+            });
+            document.querySelector('td:nth-child(17)').textContent = grandTotal.toFixed(2);
+        }
+
         document.querySelectorAll('.form-select').forEach(select => {
             select.addEventListener('change', function() {
                 const id = this.dataset.id;
                 const type = this.dataset.type;
                 const value = this.value;
-                
-                // Send AJAX request to update the data
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'update_data.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                        showAlert(xhr.responseText);
-                    }
-                };
-                xhr.send(`id=${id}&type=${type}&value=${value}`);
+                updateDatabase(id, type, value);
             });
         });
 
-        function showAlert(message) {
-            const alertContainer = document.getElementById('alert-container');
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.role = 'alert';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            alertContainer.appendChild(alertDiv);
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.addEventListener('change', function() {
+                calculateTotal(this);
+            });
+        });
 
-            // Remove alert after 5 seconds
-            setTimeout(() => {
-                alertDiv.classList.remove('show');
-                alertDiv.classList.add('fade');
-                setTimeout(() => alertDiv.remove(), 150);
-            }, 5000);
-        }
+        // function showAlert(message) {
+        //     const alertContainer = document.getElementById('alert-container');
+        //     const alertDiv = document.createElement('div');
+        //     alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        //     alertDiv.role = 'alert';
+        //     alertDiv.innerHTML = `
+        //         ${message}
+        //         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        //     alertContainer.appendChild(alertDiv);
+
+        //     // Remove alert after 5 seconds
+        //     setTimeout(() => {
+        //         alertDiv.classList.remove('show');
+        //         alertDiv.classList.add('fade');
+        //         setTimeout(() => alertDiv.remove(), 150);
+        //     }, 5000);
+        // }
     </script>
 </body>
 </html>
