@@ -53,7 +53,7 @@
         </div>
         <div class="p-2">
             <div class="buat-logout">
-                <a class="btn btn-light border border-black rounded-0 mt-2 ms-1" href="logout.php" role="button" style="width: 100%;">Logout</a>
+                <a class="btn btn-light border border-black rounded-0 mt-2 ms-1" href="tambah_data.php" role="button" style="width: 100%;">Tambah data</a>
             </div>
         </div>
     </div>
@@ -89,7 +89,7 @@
         </thead>
         <tbody>
             <?php 
-                $sql = "SELECT sistem_kasir.*, kasir.nama AS nama_kasir, statusnya.status AS status, payment.payment AS payment, kota.kota AS kota, sumber.sumber AS sumber, produk.id_produk AS id_produk, sistem_kasir.customer, sistem_kasir.no_hp, sistem_kasir.alamat, sistem_kasir.qty, sistem_kasir.harga_per_item, sistem_kasir.spending_total, sistem_kasir.discount, sistem_kasir.each_total, sistem_kasir.grand_total, sistem_kasir.delivery, sistem_kasir.packing 
+                $sql = "SELECT sistem_kasir.*, kasir.nama AS nama_kasir, statusnya.status AS status, payment.payment AS payment, kota.kota AS kota, sumber.sumber AS sumber, produk.nama_produk AS produk 
                 FROM sistem_kasir 
                 JOIN produk ON sistem_kasir.id_produk = produk.id_produk 
                 JOIN kasir ON sistem_kasir.id_kasir = kasir.id_kasir 
@@ -147,9 +147,9 @@
                     }
                     echo "</select>";
                     echo "</td>";
-                    echo "<td>".$data['customer']."</td>";
-                    echo "<td>".$data['no_hp']."</td>";
-                    echo "<td>".$data['alamat']."</td>";
+                    echo "<td>".(isset($data['customer']) ? $data['customer'] : '')."</td>";
+                    echo "<td>".(isset($data['no_hp']) ? $data['no_hp'] : '')."</td>";
+                    echo "<td>".(isset($data['alamat']) ? $data['alamat'] : '')."</td>";
                     echo "<td>";
                     echo "<select class='form-select wide-select' data-id='".$id."' data-type='kota'>";
                     foreach ($kota_options as $kota) {
@@ -166,12 +166,12 @@
                     }
                     echo "</select>";
                     echo "</td>";
-                    echo "<td>".$data['id_produk']."</td>";
-                    echo "<td><input type='number' class='form-control qty-input' data-id='".$id."' value='".$data['qty']."' /></td>";
+                    echo "<td>".$data['produk']."</td>";
+                    echo "<td><input type='number' class='form-control qty-input' data-id='".$id."' value='".(isset($data['qty']) ? $data['qty'] : 0)."' /></td>";
                     echo "<td>".$data['harga_per_item']."</td>";
-                    echo "<td class='total-cell'>".$data['spending_total']."</td>";
+                    echo "<td class='total-cell'>".(isset($data['spending_total']) ? $data['spending_total'] : 0)."</td>";
                     echo "<td>".$data['discount']."</td>";
-                    echo "<td>".$data['each_total']."</td>";
+                    echo "<td class='each_total'>".(isset($data['each_total']) ? $data['each_total'] : 0)."</td>";
                     echo "<td>".$data['grand_total']."</td>";
                     echo "<td>".$data['delivery']."</td>";
                     echo "<td>".$data['packing']."</td>";
@@ -206,7 +206,7 @@
             updateDatabase(input.dataset.id, 'qty', qty);
             const discount = parseFloat(input.closest('tr').querySelector('td:nth-child(15)').textContent) || 0;
             const eachTotal = total - discount;
-            input.closest('tr').querySelector('td:nth-child(16)').textContent = eachTotal.toFixed(2);
+            input.closest('tr').querySelector('.each_total').textContent = eachTotal.toFixed(2);
             let grandTotal = 0;
             document.querySelectorAll('.each_total').forEach(cell => {
                 grandTotal += parseFloat(cell.textContent) || 0;
@@ -229,23 +229,23 @@
             });
         });
 
-        // function showAlert(message) {
-        //     const alertContainer = document.getElementById('alert-container');
-        //     const alertDiv = document.createElement('div');
-        //     alertDiv.className = 'alert alert-success alert-dismissible fade show';
-        //     alertDiv.role = 'alert';
-        //     alertDiv.innerHTML = `
-        //         ${message}
-        //         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-        //     alertContainer.appendChild(alertDiv);
+        function showAlert(message) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.role = 'alert';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+            alertContainer.appendChild(alertDiv);
 
-        //     // Remove alert after 5 seconds
-        //     setTimeout(() => {
-        //         alertDiv.classList.remove('show');
-        //         alertDiv.classList.add('fade');
-        //         setTimeout(() => alertDiv.remove(), 150);
-        //     }, 5000);
-        // }
+            // Remove alert after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                alertDiv.classList.add('fade');
+                setTimeout(() => alertDiv.remove(), 150);
+            }, 5000);
+        }
     </script>
 </body>
 </html>
