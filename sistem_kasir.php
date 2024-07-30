@@ -59,10 +59,6 @@
     </div>
     <hr>
 
-    <div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-
-    </div>
-
     <table class="table ms-2" style="width: 90%">
         <thead>
             <tr class="table-primary">
@@ -120,6 +116,13 @@
                 while ($data = mysqli_fetch_array($query)) {
                     $id = isset($data['id']) ? $data['id'] : '';
 
+                    $qty = isset($data['qty']) ? $data['qty'] : 0;
+                    $harga_per_item = isset($data['harga_per_item']) ? $data['harga_per_item'] : 0;
+                    $spending_total = isset($data['spending_total']) ? $data['spending_total'] : 0;
+                    $discount = isset($data['discount']) ? $data['discount'] : 0;
+                    $each_total = isset($data['each_total']) ? $data['each_total'] : 0;
+                    $grand_total = isset($data['grand_total']) ? $data['grand_total'] : 0;
+
                     echo "<tr>";
                     echo "<td>".$no++."</td>";
                     echo "<td>".$data['Tanggal']."</td>";
@@ -167,12 +170,12 @@
                     echo "</select>";
                     echo "</td>";
                     echo "<td>".$data['produk']."</td>";
-                    echo "<td><input type='number' class='form-control qty-input' data-id='".$id."' value='".(isset($data['qty']) ? $data['qty'] : 0)."' /></td>";
-                    echo "<td>".$data['harga_per_item']."</td>";
-                    echo "<td class='total-cell'>".(isset($data['spending_total']) ? $data['spending_total'] : 0)."</td>";
-                    echo "<td>".$data['discount']."</td>";
-                    echo "<td class='each_total'>".(isset($data['each_total']) ? $data['each_total'] : 0)."</td>";
-                    echo "<td>".$data['grand_total']."</td>";
+                    echo "<td><input type='number' class='qty-input' data-id='".$id."' value='".$qty."' /></td>";
+                    echo "<td>".$harga_per_item."</td>";
+                    echo "<td class='total-cell'>".($qty * $harga_per_item)."</td>";
+                    echo "<td class='discount'>".($discount ? $discount : '0')."</td>";
+                    echo "<td class='each_total'>".($each_total ? $each_total : '0')."</td>";
+                    echo "<td>".$grand_total."</td>";
                     echo "<td>".$data['delivery']."</td>";
                     echo "<td>".$data['packing']."</td>";
                     echo "</tr>";
@@ -190,7 +193,8 @@
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                    showAlert(xhr.responseText);
+                    // Removed alert call
+                    // showAlert(xhr.responseText);
                 }
             };
             xhr.send(`id=${id}&type=${type}&value=${value}`);
@@ -204,7 +208,7 @@
             totalCell.textContent = total.toFixed(2);
 
             updateDatabase(input.dataset.id, 'qty', qty);
-            const discount = parseFloat(input.closest('tr').querySelector('td:nth-child(15)').textContent) || 0;
+            const discount = parseFloat(input.closest('tr').querySelector('.discount').textContent) || 0; // Use the discount from the displayed column
             const eachTotal = total - discount;
             input.closest('tr').querySelector('.each_total').textContent = eachTotal.toFixed(2);
             let grandTotal = 0;
@@ -229,23 +233,7 @@
             });
         });
 
-        function showAlert(message) {
-            const alertContainer = document.getElementById('alert-container');
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.role = 'alert';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-            alertContainer.appendChild(alertDiv);
-
-            // Remove alert after 5 seconds
-            setTimeout(() => {
-                alertDiv.classList.remove('show');
-                alertDiv.classList.add('fade');
-                setTimeout(() => alertDiv.remove(), 150);
-            }, 5000);
-        }
+        // Removed showAlert function
     </script>
 </body>
 </html>
